@@ -1,4 +1,4 @@
-.PHONY: all check simulate analyze power figure results clean help
+.PHONY: all check simulate analyze power figure results instruments clean help
 .DEFAULT_GOAL := help
 
 PY ?= python3
@@ -12,13 +12,14 @@ help:
 	@echo "  make analyze   run the preregistered pipeline; must discriminate 7/7"
 	@echo "  make power     MDES grids, replicate saturation, Monte-Carlo validation"
 	@echo "  make results   regenerate docs/05-RESULTS-TABLES.md from the simulation"
+	@echo "  make instruments  regenerate the docs/03 item tables from the code"
 	@echo "  make figure    rebuild the method-portfolio figure data"
 	@echo "  make all       everything above, in order"
 	@echo ""
 	@echo "None of these call an external API or need a key."
 
 ## The day-13 gate: a stranger clones the repo and this must pass.
-all: check simulate analyze power results figure
+all: check simulate analyze power results instruments figure
 	@echo ""
 	@echo "=========================================================="
 	@echo " All targets passed. Repo is in a releasable state."
@@ -54,6 +55,9 @@ analyze:
 power:
 	@echo "--- power / MDES ---"
 	@$(PY) analysis/power.py --out $(DATA)/mdes_grid.csv | tail -22
+
+instruments:
+	@$(PY) harness/gen_instrument_tables.py
 
 results:
 	@echo "--- regenerating synthetic results tables ---"
