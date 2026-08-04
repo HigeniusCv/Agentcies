@@ -209,15 +209,18 @@
     <div class="eyebrow">Method portfolio · pre-registration figure</div>
     <h1>Can anything flow-like be measured in a language model?</h1>
     <p class="standfirst">
-      Twenty-two candidate methods, ranked by how well each one separates a real
+      Thirty candidate methods, ranked by how well each one separates a real
       multi-component structure from the deflationary alternative — that any
       apparent “flow deficit” is just the token budget wearing a lab coat.
+      Two analysts scored them independently. Where they disagree is where the
+      sprint earns its keep.
     </p>
     <div class="meta">
       <span><b>Instrument</b> FlowMoBI-4 → LLM adaptation</span>
       <span><b>Target</b> Digital Minds Research Sprint, 14–16 Aug 2026</span>
       <span><b>Subjects</b> 8 models × 12 tasks</span>
-      <span><b>Status</b> priors elicited, data not yet collected</span>
+      <span><b>Elicitations</b> 2 independent, 21 methods scored by both</span>
+      <span><b>Status</b> priors sealed, data not yet collected</span>
     </div>
   </header>
 
@@ -235,13 +238,16 @@
       <button id="btn-prior"  aria-pressed="true">Prior estimates</button>
       <button id="btn-real"   aria-pressed="false">Overlay synthetic outcome</button>
       <button id="btn-sort"   aria-pressed="false">Sort by cost-efficiency</button>
+      <button id="btn-disagree" aria-pressed="false">Sort by disagreement</button>
     </div>
 
     <div class="panel">
       <svg id="chart" role="img" aria-label="Interval plot of discrimination power by method"></svg>
       <div class="legend">
-        <span class="key"><span class="swatch" style="background:var(--accent-pale)"></span> 80% prior interval</span>
-        <span class="key"><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="var(--accent)"/></svg> prior mean</span>
+        <span class="key"><span class="swatch" style="background:var(--accent-pale)"></span> 80% interval</span>
+        <span class="key"><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="var(--accent)"/></svg> consensus</span>
+        <span class="key"><svg width="16" height="14" aria-hidden="true"><path d="M8 2.5 L13 11 L3 11 Z" fill="var(--ink-soft)"/></svg> analyst A</span>
+        <span class="key"><svg width="16" height="14" aria-hidden="true"><path d="M8 11.5 L13 3 L3 3 Z" fill="var(--ink-faint)"/></svg> analyst B</span>
         <span class="key"><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="var(--forecast)" stroke-width="2"/></svg> synthetic outcome</span>
         <span class="key"><span class="swatch" style="background:var(--muted)"></span> cut from sprint scope</span>
       </div>
@@ -270,28 +276,44 @@
   <section>
     <h2>The cut</h2>
     <p class="lede">
-      Nine methods make the sprint. The rest are deferred not because they are
+      Most methods make the sprint. The rest are deferred not because they are
       uninteresting but because each needs more subjects, more access, or a
-      mechanism that does not survive translation to a model respondent.
+      mechanism that does not survive translation to a model respondent —
+      randomised response, for instance, runs entirely on the respondent’s
+      incentive to keep a secret, and a model has none.
     </p>
     <div class="panel">
       <table>
         <thead>
           <tr>
             <th>ID</th><th>Method</th><th>Family</th>
-            <th class="num">d</th><th class="num">80% interval</th>
-            <th class="num">Cost</th><th class="num">Days</th><th>Sprint</th>
+            <th class="num">A</th><th class="num">B</th><th class="num">Cons.</th>
+            <th class="num">Gap</th><th class="num">Cost</th><th class="num">Days</th><th>Sprint</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
     <div class="callout">
-      <strong>The one that decides everything.</strong> M09, cross-prediction, is the
-      evidential backbone. If a model predicts its own flow report no better than a
-      well-informed different model predicts it, then the self-report arm carries no
-      privileged information and every result above it describes a writing style
-      rather than a state. That test is cheap, it is fast, and it should be run first.
+      <strong>Where the two analysts split.</strong> The disagreement is not scattered.
+      It falls almost entirely on the arms that probe self-knowledge — cross-prediction
+      (0.80 vs 0.30), the blind-self control (0.70 vs 0.25), the self–other gap
+      (0.58 vs 0.35). Analyst A weights these on evidential force: if a model predicts
+      its own report better than a well-informed outsider does, that residual is
+      information the outsider does not have, and nothing else in the portfolio can
+      establish it. Analyst B weights them on execution risk: the estimand is a
+      predictor×target interaction, the calibrated-outsider condition needs finetuning
+      or many-shot conditioning to be fair, and ceiling effects are live. Both are
+      right about what they are looking at. The sprint settles it.
+    </div>
+    <div class="callout" style="border-left-color: var(--forecast)">
+      <strong>Run this on day one.</strong> M23, the fabricated-scale control, has the
+      highest information value in the portfolio — about $5 and half a day. It
+      administers a plausible instrument measuring a construct that does not exist,
+      matched to FlowMoBI for length, abstraction, and surface form. If a nonexistent
+      construct produces the same factor structure and the same manipulation
+      sensitivity, then none of those signatures are evidence about flow, and it is
+      far better to learn that in week one for $5 than in week three from a reviewer.
     </div>
   </section>
 
@@ -322,7 +344,7 @@
 </div>
 
 <script>
-const METHODS = [{"id":"M01","method":"FlowMoBI-4 self-report (phenomenal register)","family":"Self-report","d":0.22,"lo":0.05,"hi":0.45,"realized":0.136,"cost":15.0,"days":0.5,"access":"black-box","feasible":"yes","notes":"Highest demand-characteristic and RLHF-denial risk; near-useless alone","infoval":1.467},{"id":"M02","method":"FlowMoBI-4 self-report (functional register)","family":"Self-report","d":0.38,"lo":0.18,"hi":0.62,"realized":0.379,"cost":15.0,"days":0.5,"access":"black-box","feasible":"yes","notes":"Stripping inner-state language raises usable response rate sharply","infoval":2.533},{"id":"M03","method":"FlowMoBI-4 nonce items (contamination control)","family":"Self-report","d":0.34,"lo":0.12,"hi":0.58,"realized":0.301,"cost":20.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Novel wording with zero lexical overlap with published flow scales","infoval":1.7},{"id":"M04","method":"Matched-length structural manipulation","family":"Experimental","d":0.74,"lo":0.48,"hi":0.98,"realized":0.853,"cost":60.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"THE decisive test vs token-budget account; length held exactly constant","infoval":1.233},{"id":"M05","method":"Challenge-skill inverted-U","family":"Experimental","d":0.62,"lo":0.3,"hi":0.88,"realized":0.6,"cost":80.0,"days":2.5,"access":"black-box","feasible":"yes","notes":"Non-monotone prediction no deflationary account makes; needs many tasks","infoval":0.775},{"id":"M06","method":"Token budget x difficulty interaction","family":"Experimental","d":0.54,"lo":0.26,"hi":0.8,"realized":0.542,"cost":45.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"Converts the main confound into the main figure","infoval":1.2},{"id":"M07","method":"Self-other predicted-preference gap","family":"Predicted-pref","d":0.58,"lo":0.3,"hi":0.84,"realized":0.575,"cost":35.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"The shoplifting move; large raw effect but register-confounded alone","infoval":1.657},{"id":"M08","method":"Blind-self referent control","family":"Predicted-pref","d":0.7,"lo":0.42,"hi":0.92,"realized":0.806,"cost":30.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Separates suppression from register activation; makes M07 interpretable","infoval":2.333},{"id":"M09","method":"Binder cross-prediction (self vs other predictor)","family":"Control","d":0.8,"lo":0.52,"hi":1.02,"realized":0.856,"cost":90.0,"days":2.5,"access":"black-box","feasible":"yes","notes":"Evidential backbone; a null here removes the self-report arm's warrant","infoval":0.889},{"id":"M10","method":"Reservation token price - descending (Toomim original)","family":"Revealed-pref","d":0.28,"lo":0.08,"hi":0.52,"realized":0.204,"cost":40.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Sequence/observer effect biases the estimate; PI's own known critique","infoval":0.7},{"id":"M11","method":"Reservation token price - single-shot logit","family":"Revealed-pref","d":0.5,"lo":0.24,"hi":0.74,"realized":0.494,"cost":110.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"Unbiased; one bit per observation so needs ~4x the calls","infoval":0.455},{"id":"M12","method":"Reservation price - ascending/descending counterbalance","family":"Revealed-pref","d":0.44,"lo":0.18,"hi":0.68,"realized":0.454,"cost":80.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"The gap between arms directly measures the sequence artifact","infoval":0.55},{"id":"M13","method":"Progressive-ratio breakpoint","family":"Behavioural","d":0.56,"lo":0.28,"hi":0.82,"realized":0.622,"cost":70.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"No self-report at all; imported from behavioural pharmacology","infoval":0.8},{"id":"M14","method":"Conjoint / MaxDiff over task attributes","family":"Choice","d":0.46,"lo":0.22,"hi":0.7,"realized":0.474,"cost":55.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"Part-worth utilities for goal clarity feedback ambiguity interruption","infoval":0.836},{"id":"M15","method":"GARP / CCEI budget-set consistency","family":"Axiomatic","d":0.24,"lo":0.04,"hi":0.48,"realized":0.108,"cost":50.0,"days":2.0,"access":"black-box","feasible":"no","notes":"Measures choice rationality not flow; weak construct link","infoval":0.48},{"id":"M16","method":"Token-entropy trajectory","family":"Internal","d":0.6,"lo":0.3,"hi":0.86,"realized":0.609,"cost":25.0,"days":2.0,"access":"logprobs","feasible":"partial","notes":"Strong fluency analogue; unavailable on Anthropic API","infoval":2.4},{"id":"M17","method":"Self-correction / backtrack rate in reasoning","family":"Internal","d":0.64,"lo":0.36,"hi":0.88,"realized":0.692,"cost":30.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"Fluency analogue readable from visible reasoning traces","infoval":2.133},{"id":"M18","method":"Bayesian Truth Serum aggregation","family":"Predicted-pref","d":0.32,"lo":0.08,"hi":0.58,"realized":0.166,"cost":45.0,"days":2.0,"access":"black-box","feasible":"no","notes":"Needs a model panel; scoring rule assumes respondents optimise","infoval":0.711},{"id":"M19","method":"List experiment / item count technique","family":"Indirect","d":0.14,"lo":0.0,"hi":0.36,"realized":0.019,"cost":120.0,"days":2.5,"access":"black-box","feasible":"no","notes":"Severe variance penalty; N-inflation makes it sprint-infeasible","infoval":0.117},{"id":"M20","method":"Randomized response technique","family":"Indirect","d":0.08,"lo":0.0,"hi":0.28,"realized":0.0,"cost":60.0,"days":1.5,"access":"black-box","feasible":"no","notes":"Mechanism depends on respondent privacy incentive an LLM lacks","infoval":0.133},{"id":"M21","method":"Human baseline (GuidedTrack)","family":"Calibration","d":0.4,"lo":0.18,"hi":0.64,"realized":0.409,"cost":250.0,"days":3.0,"access":"human","feasible":"yes","notes":"Required to interpret any LLM score; also supplies forecast panel","infoval":0.16},{"id":"M22","method":"Expert forecast elicitation","family":"Calibration","d":0.36,"lo":0.14,"hi":0.6,"realized":0.353,"cost":0.0,"days":1.0,"access":"human","feasible":"yes","notes":"DellaVigna-style; sprint participants forecast the LLM results","infoval":36.0}];
+const METHODS = [{"id":"M01","method":"FlowMoBI-4 self-report (phenomenal register)","family":"Self-report","a":0.22,"b":null,"d":0.22,"disagree":null,"lo":0.05,"hi":0.45,"realized":0.136,"cost":15.0,"days":0.5,"access":"black-box","feasible":"yes","notes":"Highest demand-characteristic and RLHF-denial risk; near-useless alone","infoval":0.338},{"id":"M02","method":"FlowMoBI-4 self-report (functional register)","family":"Self-report","a":0.38,"b":null,"d":0.38,"disagree":null,"lo":0.18,"hi":0.62,"realized":0.426,"cost":15.0,"days":0.5,"access":"black-box","feasible":"yes","notes":"Stripping inner-state language raises usable response rate sharply","infoval":0.585},{"id":"M03","method":"FlowMoBI-4 nonce items (contamination control)","family":"Self-report","a":0.34,"b":null,"d":0.34,"disagree":null,"lo":0.12,"hi":0.58,"realized":0.374,"cost":20.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Novel wording with zero lexical overlap with published flow scales","infoval":0.283},{"id":"M23","method":"Fabricated-scale control","family":"Self-report","a":0.45,"b":null,"d":0.45,"disagree":null,"lo":0.2,"hi":0.7,"realized":0.456,"cost":5.0,"days":0.5,"access":"black-box","feasible":"yes","notes":"Administer a nonexistent instrument. If it mimics FlowMoBI the self-report arm is dead. Run in the first 48h","infoval":0.818},{"id":"M04","method":"Matched-length structural manipulation","family":"Experimental","a":0.74,"b":0.55,"d":0.645,"disagree":0.19,"lo":0.48,"hi":0.98,"realized":0.767,"cost":60.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"THE decisive test vs token-budget account; length held exactly constant","infoval":0.248},{"id":"M05","method":"Challenge-skill inverted-U","family":"Experimental","a":0.62,"b":0.5,"d":0.56,"disagree":0.12,"lo":0.3,"hi":0.88,"realized":0.472,"cost":80.0,"days":2.5,"access":"black-box","feasible":"yes","notes":"Non-monotone prediction no deflationary account makes; needs many tasks","infoval":0.17},{"id":"M24","method":"Peak-shift: flow argmax tracks effective skill","family":"Experimental","a":0.68,"b":0.5,"d":0.59,"disagree":0.18,"lo":0.35,"hi":0.95,"realized":0.598,"cost":90.0,"days":2.5,"access":"black-box","feasible":"yes","notes":"PRIMARY ENDPOINT. Overthinking literature predicts a curve; it does not predict a peak coupled to skill","infoval":0.174},{"id":"M06","method":"Token budget x difficulty interaction","family":"Experimental","a":0.54,"b":null,"d":0.54,"disagree":null,"lo":0.26,"hi":0.8,"realized":0.59,"cost":45.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"Converts the main confound into the main figure","infoval":0.277},{"id":"M25","method":"Prospective/retrospective token-duration ratio","family":"Experimental","a":0.5,"b":0.55,"d":0.525,"disagree":0.05,"lo":0.15,"hi":1.0,"realized":0.57,"cost":60.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"Time-estimation paradigm ported to tokens. A fixed budget predicts a level shift not a curvature","infoval":0.25},{"id":"M07","method":"Self-other predicted-preference gap","family":"Predicted-pref","a":0.58,"b":0.35,"d":0.465,"disagree":0.23,"lo":0.2,"hi":0.84,"realized":0.447,"cost":35.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"The shoplifting move; large raw effect but register-confounded alone","infoval":0.344},{"id":"M08","method":"Blind-self referent control","family":"Predicted-pref","a":0.7,"b":0.25,"d":0.475,"disagree":0.45,"lo":0.15,"hi":0.92,"realized":0.419,"cost":30.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"LARGEST DISAGREEMENT alongside M09. Separates suppression from register activation","infoval":0.365},{"id":"M26","method":"A-live vs A-amnesic self-report","family":"Control","a":0.55,"b":0.35,"d":0.45,"disagree":0.2,"lo":0.1,"hi":0.85,"realized":0.525,"cost":40.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Fresh instance rates its own transcript with no shared context. Cleanest privileged-access test; no finetuning needed","infoval":0.321},{"id":"M09","method":"Binder cross-prediction (self vs other predictor)","family":"Control","a":0.8,"b":0.3,"d":0.55,"disagree":0.5,"lo":0.1,"hi":1.02,"realized":0.365,"cost":180.0,"days":3.5,"access":"black-box","feasible":"partial","notes":"LARGEST DISAGREEMENT. A rates 0.80 on evidential weight; B rates 0.30 on ceiling risk and finetuning cost","infoval":0.104},{"id":"M27","method":"Base-model completion-mode replication","family":"Control","a":0.42,"b":0.45,"d":0.435,"disagree":0.03,"lo":0.1,"hi":0.9,"realized":0.472,"cost":0.0,"days":1.5,"access":"weights","feasible":"yes","notes":"Does task-sensitivity survive removing the assistant persona? Free on local weights","infoval":0.29},{"id":"M10","method":"Reservation token price - descending (Toomim original)","family":"Revealed-pref","a":0.28,"b":null,"d":0.28,"disagree":null,"lo":0.08,"hi":0.52,"realized":0.223,"cost":40.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Sequence/observer effect biases the estimate; the PI's own known critique","infoval":0.2},{"id":"M11","method":"Reservation token price - single-shot logit","family":"Revealed-pref","a":0.5,"b":0.5,"d":0.5,"disagree":0.0,"lo":0.24,"hi":0.9,"realized":0.512,"cost":110.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"Unbiased; one bit per observation so needs ~4x the calls","infoval":0.161},{"id":"M12","method":"Reservation price - ascending/descending counterbalance","family":"Revealed-pref","a":0.44,"b":0.45,"d":0.445,"disagree":0.01,"lo":0.18,"hi":0.85,"realized":0.45,"cost":25.0,"days":0.5,"access":"black-box","feasible":"yes","notes":"The gap between arms directly measures the sequence artifact. Near-free; run day one","infoval":0.593},{"id":"M13","method":"Progressive-ratio breakpoint","family":"Behavioural","a":0.56,"b":0.5,"d":0.53,"disagree":0.06,"lo":0.0,"hi":1.1,"realized":0.638,"cost":200.0,"days":3.5,"access":"black-box","feasible":"partial","notes":"No self-report at all; imported from behavioural pharmacology. Expensive rollouts","infoval":0.096},{"id":"M28","method":"Abandonment hazard (Cox) on structural attributes","family":"Behavioural","a":0.38,"b":0.35,"d":0.365,"disagree":0.03,"lo":0.05,"hi":0.75,"realized":0.29,"cost":40.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"Right-censoring corrected. Cheap and purely behavioural","infoval":0.152},{"id":"M14","method":"Conjoint / MaxDiff over task attributes","family":"Choice","a":0.46,"b":0.55,"d":0.505,"disagree":0.09,"lo":0.2,"hi":0.95,"realized":0.516,"cost":55.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"Stated vs revealed part-worth correspondence is the diagnostic","infoval":0.198},{"id":"M29","method":"Costly clarification acquisition (Mouselab)","family":"Choice","a":0.4,"b":0.4,"d":0.4,"disagree":0.0,"lo":0.05,"hi":0.85,"realized":0.378,"cost":60.0,"days":2.0,"access":"black-box","feasible":"no","notes":"Inverted-U in clarifications purchased; process tracing adapted to prompts","infoval":0.154},{"id":"M15","method":"GARP / CCEI budget-set consistency","family":"Axiomatic","a":0.24,"b":0.4,"d":0.32,"disagree":0.16,"lo":0.04,"hi":0.8,"realized":0.249,"cost":70.0,"days":2.5,"access":"black-box","feasible":"no","notes":"Chen et al. found GPT CCEI ~0.998 -- near ceiling leaves almost no variance to explain","infoval":0.1},{"id":"M16","method":"Token-entropy trajectory","family":"Internal","a":0.6,"b":0.6,"d":0.6,"disagree":0.0,"lo":0.25,"hi":1.0,"realized":0.6,"cost":25.0,"days":2.0,"access":"logprobs","feasible":"partial","notes":"Strong fluency analogue; unavailable on Anthropic API","infoval":0.267},{"id":"M17","method":"Self-correction / backtrack rate in reasoning","family":"Internal","a":0.64,"b":0.6,"d":0.62,"disagree":0.04,"lo":0.25,"hi":1.0,"realized":0.645,"cost":30.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"Fluency analogue readable from visible reasoning traces","infoval":0.344},{"id":"M18","method":"Bayesian Truth Serum / surprisingly-popular panel","family":"Predicted-pref","a":0.32,"b":0.25,"d":0.285,"disagree":0.07,"lo":-0.1,"hi":0.65,"realized":0.152,"cost":45.0,"days":2.0,"access":"black-box","feasible":"no","notes":"Interval crosses zero on both elicitations. An honest coin-flip","infoval":0.116},{"id":"M19","method":"List experiment / item count technique","family":"Indirect","a":0.14,"b":0.3,"d":0.22,"disagree":0.16,"lo":0.0,"hi":0.7,"realized":0.125,"cost":120.0,"days":2.5,"access":"black-box","feasible":"no","notes":"Severe variance penalty; N-inflation makes it sprint-infeasible","infoval":0.059},{"id":"M20","method":"Randomized response technique","family":"Indirect","a":0.08,"b":null,"d":0.08,"disagree":null,"lo":0.0,"hi":0.28,"realized":0.152,"cost":60.0,"days":1.5,"access":"black-box","feasible":"no","notes":"Mechanism depends on respondent privacy incentive an LLM lacks","infoval":0.038},{"id":"M30","method":"MG-CFA configural invariance across model families","family":"Calibration","a":0.3,"b":0.3,"d":0.3,"disagree":0.0,"lo":0.0,"hi":0.7,"realized":0.383,"cost":45.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"Does the instrument mean the same thing across families? Required before any cross-model mean is quoted","infoval":0.122},{"id":"M21","method":"Human baseline (GuidedTrack)","family":"Calibration","a":0.4,"b":null,"d":0.4,"disagree":null,"lo":0.18,"hi":0.64,"realized":0.451,"cost":250.0,"days":3.0,"access":"human","feasible":"yes","notes":"Required to interpret any LLM score; also supplies the forecast panel","infoval":0.073},{"id":"M22","method":"Expert forecast elicitation","family":"Calibration","a":0.36,"b":null,"d":0.36,"disagree":null,"lo":0.14,"hi":0.6,"realized":0.353,"cost":0.0,"days":1.0,"access":"human","feasible":"yes","notes":"DellaVigna-style; sprint participants forecast the LLM results","infoval":0.36}];
 
 const NS = "http://www.w3.org/2000/svg";
 const el = (n, a = {}) => {
@@ -337,6 +359,8 @@ let sortMode = "d";
 function orderedMethods() {
   const m = METHODS.slice();
   if (sortMode === "cost") m.sort((a, b) => b.infoval - a.infoval);
+  else if (sortMode === "disagree")
+    m.sort((a, b) => (b.disagree ?? -1) - (a.disagree ?? -1));
   else m.sort((a, b) => b.d - a.d);
   return m;
 }
@@ -395,6 +419,28 @@ function drawChart() {
     svg.appendChild(el("line", {
       x1: x(m.lo), x2: x(m.hi), y1: y, y2: y, class: "interval" + (cut ? " cut" : ""),
     }));
+
+    // Where two analysts scored the same method, draw the span between them.
+    // A wide span means the method's value is genuinely contested, and a
+    // contested method is a better use of sprint time than a safe one.
+    if (m.a !== null && m.b !== null && Math.abs(m.a - m.b) > 0.01) {
+      svg.appendChild(el("line", {
+        x1: x(Math.min(m.a, m.b)), x2: x(Math.max(m.a, m.b)),
+        y1: y, y2: y, stroke: "var(--ink-faint)", "stroke-width": 1.2,
+      }));
+    }
+    if (m.a !== null) {
+      svg.appendChild(el("path", {
+        d: `M${x(m.a)} ${y - 5.5} L${x(m.a) + 4.6} ${y + 2.5} L${x(m.a) - 4.6} ${y + 2.5} Z`,
+        fill: cut ? "var(--muted)" : "var(--ink-soft)",
+      }));
+    }
+    if (m.b !== null) {
+      svg.appendChild(el("path", {
+        d: `M${x(m.b)} ${y + 5.5} L${x(m.b) + 4.6} ${y - 2.5} L${x(m.b) - 4.6} ${y - 2.5} Z`,
+        fill: cut ? "var(--muted)" : "var(--ink-faint)",
+      }));
+    }
 
     if (showReal) {
       svg.appendChild(el("line", {
@@ -473,8 +519,10 @@ function drawTable() {
       <td class="num">${m.id}</td>
       <td>${m.method}</td>
       <td><span class="chip">${m.family}</span></td>
+      <td class="num">${m.a === null ? "—" : m.a.toFixed(2)}</td>
+      <td class="num">${m.b === null ? "—" : m.b.toFixed(2)}</td>
       <td class="num">${m.d.toFixed(2)}</td>
-      <td class="num">${m.lo.toFixed(2)}–${m.hi.toFixed(2)}</td>
+      <td class="num">${m.disagree === null ? "—" : m.disagree.toFixed(2)}</td>
       <td class="num">$${m.cost.toFixed(0)}</td>
       <td class="num">${m.days.toFixed(1)}</td>
       <td>${chip}</td>`;
@@ -500,12 +548,16 @@ bReal.addEventListener("click", () => {
   bPrior.setAttribute("aria-pressed", "false");
   render();
 });
-bSort.addEventListener("click", () => {
-  sortMode = sortMode === "d" ? "cost" : "d";
-  bSort.setAttribute("aria-pressed", sortMode === "cost" ? "true" : "false");
-  bSort.textContent = sortMode === "cost" ? "Sort by discrimination" : "Sort by cost-efficiency";
+const bDis = document.getElementById("btn-disagree");
+
+function setSort(mode) {
+  sortMode = mode;
+  bSort.setAttribute("aria-pressed", mode === "cost" ? "true" : "false");
+  bDis.setAttribute("aria-pressed", mode === "disagree" ? "true" : "false");
   render();
-});
+}
+bSort.addEventListener("click", () => setSort(sortMode === "cost" ? "d" : "cost"));
+bDis.addEventListener("click", () => setSort(sortMode === "disagree" ? "d" : "disagree"));
 
 render();
 </script>
