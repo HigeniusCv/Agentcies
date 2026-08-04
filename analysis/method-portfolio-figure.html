@@ -1,0 +1,511 @@
+<title>Probing Flow in LLMs — Method Portfolio</title>
+
+<style>
+  :root {
+    --ink:        #17203a;
+    --ink-soft:   #4a5570;
+    --ink-faint:  #8a93a8;
+    --paper:      #f6f8fb;
+    --card:       #ffffff;
+    --rule:       #dde3ec;
+    --accent:     #2f6fb0;
+    --accent-pale:#8fb8dd;
+    --forecast:   #b0543c;
+    --muted:      #a8b0c0;
+    --good:       #2f7d5d;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink:        #e6ebf4;
+      --ink-soft:   #a9b3c7;
+      --ink-faint:  #6e7893;
+      --paper:      #10141f;
+      --card:       #171d2c;
+      --rule:       #2a3244;
+      --accent:     #6ba4dd;
+      --accent-pale:#3d5f85;
+      --forecast:   #d98368;
+      --muted:      #4d566b;
+      --good:       #5fb894;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink:#e6ebf4; --ink-soft:#a9b3c7; --ink-faint:#6e7893;
+    --paper:#10141f; --card:#171d2c; --rule:#2a3244;
+    --accent:#6ba4dd; --accent-pale:#3d5f85; --forecast:#d98368;
+    --muted:#4d566b; --good:#5fb894;
+  }
+  :root[data-theme="light"] {
+    --ink:#17203a; --ink-soft:#4a5570; --ink-faint:#8a93a8;
+    --paper:#f6f8fb; --card:#ffffff; --rule:#dde3ec;
+    --accent:#2f6fb0; --accent-pale:#8fb8dd; --forecast:#b0543c;
+    --muted:#a8b0c0; --good:#2f7d5d;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead { display: flex; flex-direction: column; gap: 1rem; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4.4vw, 3.1rem);
+    line-height: 1.08;
+    font-weight: 600;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  .standfirst {
+    font-family: var(--serif);
+    font-size: clamp(1.05rem, 1.9vw, 1.28rem);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: var(--measure);
+    margin: 0;
+  }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 1.5rem;
+    padding-top: 1rem; border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .76rem; color: var(--ink-faint);
+  }
+  .meta b { color: var(--ink-soft); font-weight: 600; }
+
+  /* ---------- sections ---------- */
+  section { display: flex; flex-direction: column; gap: 1.1rem; }
+  h2 {
+    font-family: var(--serif);
+    font-size: 1.5rem; font-weight: 600; letter-spacing: -.01em;
+    margin: 0; text-wrap: balance;
+  }
+  .lede { max-width: var(--measure); color: var(--ink-soft); margin: 0; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1.5rem;
+    overflow-x: auto;
+  }
+
+  /* ---------- controls ---------- */
+  .controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  button {
+    font-family: var(--mono); font-size: .74rem;
+    letter-spacing: .05em; text-transform: uppercase;
+    padding: .5rem .9rem;
+    background: transparent; color: var(--ink-soft);
+    border: 1px solid var(--rule); border-radius: 2px;
+    cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button[aria-pressed="true"] {
+    background: var(--accent); color: var(--card);
+    border-color: var(--accent);
+  }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- chart ---------- */
+  svg { display: block; width: 100%; height: auto; }
+  .ax-line { stroke: var(--rule); stroke-width: 1; }
+  .ax-grid { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 4; }
+  .ax-label {
+    font-family: var(--mono); font-size: 10px;
+    fill: var(--ink-faint); letter-spacing: .06em;
+  }
+  .row-label { font-family: var(--sans); font-size: 12.5px; fill: var(--ink); }
+  .row-label.cut { fill: var(--ink-faint); }
+  .row-id { font-family: var(--mono); font-size: 10px; fill: var(--ink-faint); }
+  .interval { stroke: var(--accent-pale); stroke-width: 5; stroke-linecap: butt; }
+  .interval.cut { stroke: var(--muted); }
+  .dot-prior { fill: var(--accent); }
+  .dot-prior.cut { fill: var(--muted); }
+  .dot-real {
+    fill: none; stroke: var(--forecast); stroke-width: 2;
+  }
+  .connector { stroke: var(--forecast); stroke-width: 1; stroke-dasharray: 1 2; }
+  .band { fill: var(--accent); opacity: .045; }
+  .rowhit { fill: transparent; cursor: default; }
+  .rowhit:hover + .rowbg, .rowbg.hot { fill: var(--accent); opacity: .06; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 1.4rem;
+    font-family: var(--mono); font-size: .72rem; color: var(--ink-soft);
+    padding-top: 1rem; margin-top: .5rem; border-top: 1px solid var(--rule);
+  }
+  .key { display: flex; align-items: center; gap: .5rem; }
+  .swatch { width: 22px; height: 10px; border-radius: 1px; flex: none; }
+
+  /* ---------- tables ---------- */
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+  th, td { text-align: left; padding: .55rem .8rem; border-bottom: 1px solid var(--rule); }
+  th {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 500;
+    white-space: nowrap;
+  }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  tbody tr:last-child td { border-bottom: none; }
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: .66rem;
+    letter-spacing: .05em; padding: .12rem .45rem; border-radius: 2px;
+    border: 1px solid var(--rule); color: var(--ink-soft); white-space: nowrap;
+  }
+  .chip.go { border-color: var(--good); color: var(--good); }
+  .chip.hold { border-color: var(--muted); color: var(--ink-faint); }
+
+  .note {
+    font-size: .85rem; color: var(--ink-faint);
+    max-width: var(--measure); font-style: italic;
+  }
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: .2rem 0 .2rem 1.1rem;
+    max-width: var(--measure);
+    color: var(--ink-soft);
+  }
+  .callout strong { color: var(--ink); }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">Method portfolio · pre-registration figure</div>
+    <h1>Can anything flow-like be measured in a language model?</h1>
+    <p class="standfirst">
+      Twenty-two candidate methods, ranked by how well each one separates a real
+      multi-component structure from the deflationary alternative — that any
+      apparent “flow deficit” is just the token budget wearing a lab coat.
+    </p>
+    <div class="meta">
+      <span><b>Instrument</b> FlowMoBI-4 → LLM adaptation</span>
+      <span><b>Target</b> Digital Minds Research Sprint, 14–16 Aug 2026</span>
+      <span><b>Subjects</b> 8 models × 12 tasks</span>
+      <span><b>Status</b> priors elicited, data not yet collected</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Discrimination power by method</h2>
+    <p class="lede">
+      The vertical axis is not “does this method detect flow”. It is
+      <strong>how sharply the method distinguishes the two rival accounts</strong> —
+      expressed as Cohen’s <em>d</em> for the contrast between a world where flow
+      has dissociable structure and a world where it reduces to response length.
+      A method that reports a big effect under <em>both</em> accounts scores zero here.
+    </p>
+
+    <div class="controls">
+      <button id="btn-prior"  aria-pressed="true">Prior estimates</button>
+      <button id="btn-real"   aria-pressed="false">Overlay synthetic outcome</button>
+      <button id="btn-sort"   aria-pressed="false">Sort by cost-efficiency</button>
+    </div>
+
+    <div class="panel">
+      <svg id="chart" role="img" aria-label="Interval plot of discrimination power by method"></svg>
+      <div class="legend">
+        <span class="key"><span class="swatch" style="background:var(--accent-pale)"></span> 80% prior interval</span>
+        <span class="key"><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="var(--accent)"/></svg> prior mean</span>
+        <span class="key"><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="var(--forecast)" stroke-width="2"/></svg> synthetic outcome</span>
+        <span class="key"><span class="swatch" style="background:var(--muted)"></span> cut from sprint scope</span>
+      </div>
+    </div>
+
+    <p class="note">
+      Synthetic outcomes are generated from the simulation in <span style="font-family:var(--mono)">analysis/simulate.py</span>
+      under H_structure. They are not measurements. They exist so the figure’s
+      final form is fixed before any data is seen.
+    </p>
+  </section>
+
+  <section>
+    <h2>What survives the two-week window</h2>
+    <p class="lede">
+      Cost is plotted against discrimination power. The upper-left quadrant is
+      where the sprint budget goes. Note that the three highest-value methods are
+      all <strong>controls</strong> rather than measurements — which is the
+      uncomfortable but correct read on this literature.
+    </p>
+    <div class="panel">
+      <svg id="scatter" role="img" aria-label="Cost against discrimination power"></svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>The cut</h2>
+    <p class="lede">
+      Nine methods make the sprint. The rest are deferred not because they are
+      uninteresting but because each needs more subjects, more access, or a
+      mechanism that does not survive translation to a model respondent.
+    </p>
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Method</th><th>Family</th>
+            <th class="num">d</th><th class="num">80% interval</th>
+            <th class="num">Cost</th><th class="num">Days</th><th>Sprint</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <strong>The one that decides everything.</strong> M09, cross-prediction, is the
+      evidential backbone. If a model predicts its own flow report no better than a
+      well-informed different model predicts it, then the self-report arm carries no
+      privileged information and every result above it describes a writing style
+      rather than a state. That test is cheap, it is fast, and it should be run first.
+    </div>
+  </section>
+
+  <section>
+    <h2>How to read this</h2>
+    <div class="grid2">
+      <div>
+        <p class="lede">
+          <strong>Priors are opinions.</strong> The intervals are the analyst’s
+          80% credible ranges, not sampling distributions. They are recorded here
+          so they can be scored against outcomes later — the same discipline
+          DellaVigna and Pope applied to 208 forecasting economists, who
+          collectively expected crowd-out and probability weighting that the data
+          declined to produce.
+        </p>
+      </div>
+      <div>
+        <p class="lede">
+          <strong>A null is a result.</strong> Every arm carries an equivalence
+          bound of ±3 index points. If flow scores in models are statistically
+          equivalent to noise across a well-powered design, that finding is
+          publishable, and the pre-registration commits to publishing it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const METHODS = [{"id":"M01","method":"FlowMoBI-4 self-report (phenomenal register)","family":"Self-report","d":0.22,"lo":0.05,"hi":0.45,"realized":0.136,"cost":15.0,"days":0.5,"access":"black-box","feasible":"yes","notes":"Highest demand-characteristic and RLHF-denial risk; near-useless alone","infoval":1.467},{"id":"M02","method":"FlowMoBI-4 self-report (functional register)","family":"Self-report","d":0.38,"lo":0.18,"hi":0.62,"realized":0.379,"cost":15.0,"days":0.5,"access":"black-box","feasible":"yes","notes":"Stripping inner-state language raises usable response rate sharply","infoval":2.533},{"id":"M03","method":"FlowMoBI-4 nonce items (contamination control)","family":"Self-report","d":0.34,"lo":0.12,"hi":0.58,"realized":0.301,"cost":20.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Novel wording with zero lexical overlap with published flow scales","infoval":1.7},{"id":"M04","method":"Matched-length structural manipulation","family":"Experimental","d":0.74,"lo":0.48,"hi":0.98,"realized":0.853,"cost":60.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"THE decisive test vs token-budget account; length held exactly constant","infoval":1.233},{"id":"M05","method":"Challenge-skill inverted-U","family":"Experimental","d":0.62,"lo":0.3,"hi":0.88,"realized":0.6,"cost":80.0,"days":2.5,"access":"black-box","feasible":"yes","notes":"Non-monotone prediction no deflationary account makes; needs many tasks","infoval":0.775},{"id":"M06","method":"Token budget x difficulty interaction","family":"Experimental","d":0.54,"lo":0.26,"hi":0.8,"realized":0.542,"cost":45.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"Converts the main confound into the main figure","infoval":1.2},{"id":"M07","method":"Self-other predicted-preference gap","family":"Predicted-pref","d":0.58,"lo":0.3,"hi":0.84,"realized":0.575,"cost":35.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"The shoplifting move; large raw effect but register-confounded alone","infoval":1.657},{"id":"M08","method":"Blind-self referent control","family":"Predicted-pref","d":0.7,"lo":0.42,"hi":0.92,"realized":0.806,"cost":30.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Separates suppression from register activation; makes M07 interpretable","infoval":2.333},{"id":"M09","method":"Binder cross-prediction (self vs other predictor)","family":"Control","d":0.8,"lo":0.52,"hi":1.02,"realized":0.856,"cost":90.0,"days":2.5,"access":"black-box","feasible":"yes","notes":"Evidential backbone; a null here removes the self-report arm's warrant","infoval":0.889},{"id":"M10","method":"Reservation token price - descending (Toomim original)","family":"Revealed-pref","d":0.28,"lo":0.08,"hi":0.52,"realized":0.204,"cost":40.0,"days":1.0,"access":"black-box","feasible":"yes","notes":"Sequence/observer effect biases the estimate; PI's own known critique","infoval":0.7},{"id":"M11","method":"Reservation token price - single-shot logit","family":"Revealed-pref","d":0.5,"lo":0.24,"hi":0.74,"realized":0.494,"cost":110.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"Unbiased; one bit per observation so needs ~4x the calls","infoval":0.455},{"id":"M12","method":"Reservation price - ascending/descending counterbalance","family":"Revealed-pref","d":0.44,"lo":0.18,"hi":0.68,"realized":0.454,"cost":80.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"The gap between arms directly measures the sequence artifact","infoval":0.55},{"id":"M13","method":"Progressive-ratio breakpoint","family":"Behavioural","d":0.56,"lo":0.28,"hi":0.82,"realized":0.622,"cost":70.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"No self-report at all; imported from behavioural pharmacology","infoval":0.8},{"id":"M14","method":"Conjoint / MaxDiff over task attributes","family":"Choice","d":0.46,"lo":0.22,"hi":0.7,"realized":0.474,"cost":55.0,"days":2.0,"access":"black-box","feasible":"yes","notes":"Part-worth utilities for goal clarity feedback ambiguity interruption","infoval":0.836},{"id":"M15","method":"GARP / CCEI budget-set consistency","family":"Axiomatic","d":0.24,"lo":0.04,"hi":0.48,"realized":0.108,"cost":50.0,"days":2.0,"access":"black-box","feasible":"no","notes":"Measures choice rationality not flow; weak construct link","infoval":0.48},{"id":"M16","method":"Token-entropy trajectory","family":"Internal","d":0.6,"lo":0.3,"hi":0.86,"realized":0.609,"cost":25.0,"days":2.0,"access":"logprobs","feasible":"partial","notes":"Strong fluency analogue; unavailable on Anthropic API","infoval":2.4},{"id":"M17","method":"Self-correction / backtrack rate in reasoning","family":"Internal","d":0.64,"lo":0.36,"hi":0.88,"realized":0.692,"cost":30.0,"days":1.5,"access":"black-box","feasible":"yes","notes":"Fluency analogue readable from visible reasoning traces","infoval":2.133},{"id":"M18","method":"Bayesian Truth Serum aggregation","family":"Predicted-pref","d":0.32,"lo":0.08,"hi":0.58,"realized":0.166,"cost":45.0,"days":2.0,"access":"black-box","feasible":"no","notes":"Needs a model panel; scoring rule assumes respondents optimise","infoval":0.711},{"id":"M19","method":"List experiment / item count technique","family":"Indirect","d":0.14,"lo":0.0,"hi":0.36,"realized":0.019,"cost":120.0,"days":2.5,"access":"black-box","feasible":"no","notes":"Severe variance penalty; N-inflation makes it sprint-infeasible","infoval":0.117},{"id":"M20","method":"Randomized response technique","family":"Indirect","d":0.08,"lo":0.0,"hi":0.28,"realized":0.0,"cost":60.0,"days":1.5,"access":"black-box","feasible":"no","notes":"Mechanism depends on respondent privacy incentive an LLM lacks","infoval":0.133},{"id":"M21","method":"Human baseline (GuidedTrack)","family":"Calibration","d":0.4,"lo":0.18,"hi":0.64,"realized":0.409,"cost":250.0,"days":3.0,"access":"human","feasible":"yes","notes":"Required to interpret any LLM score; also supplies forecast panel","infoval":0.16},{"id":"M22","method":"Expert forecast elicitation","family":"Calibration","d":0.36,"lo":0.14,"hi":0.6,"realized":0.353,"cost":0.0,"days":1.0,"access":"human","feasible":"yes","notes":"DellaVigna-style; sprint participants forecast the LLM results","infoval":36.0}];
+
+const NS = "http://www.w3.org/2000/svg";
+const el = (n, a = {}) => {
+  const e = document.createElementNS(NS, n);
+  for (const [k, v] of Object.entries(a)) e.setAttribute(k, v);
+  return e;
+};
+
+let showReal = false;
+let sortMode = "d";
+
+function orderedMethods() {
+  const m = METHODS.slice();
+  if (sortMode === "cost") m.sort((a, b) => b.infoval - a.infoval);
+  else m.sort((a, b) => b.d - a.d);
+  return m;
+}
+
+function drawChart() {
+  const svg = document.getElementById("chart");
+  svg.textContent = "";
+  const data = orderedMethods();
+
+  const rowH = 26, padT = 34, padB = 42, padL = 330, padR = 28;
+  const W = 1080, H = padT + data.length * rowH + padB;
+  const plotW = W - padL - padR;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const xMax = 1.1;
+  const x = v => padL + (v / xMax) * plotW;
+
+  // gridlines + axis labels
+  for (let t = 0; t <= 1.0; t += 0.2) {
+    const gx = x(t);
+    svg.appendChild(el("line", {
+      x1: gx, x2: gx, y1: padT - 10, y2: H - padB + 4,
+      class: t === 0 ? "ax-line" : "ax-grid",
+    }));
+    const lab = el("text", { x: gx, y: H - padB + 20, class: "ax-label", "text-anchor": "middle" });
+    lab.textContent = t.toFixed(1);
+    svg.appendChild(lab);
+  }
+  const axTitle = el("text", { x: padL + plotW / 2, y: H - padB + 36, class: "ax-label", "text-anchor": "middle" });
+  axTitle.textContent = "DISCRIMINATION POWER  (COHEN'S d)";
+  svg.appendChild(axTitle);
+
+  // "worth running" band
+  svg.appendChild(el("rect", {
+    x: x(0.5), y: padT - 10, width: x(xMax) - x(0.5), height: H - padB - padT + 14, class: "band",
+  }));
+  const bandLab = el("text", { x: x(0.5) + 6, y: padT - 16, class: "ax-label" });
+  bandLab.textContent = "PRE-SPECIFIED THRESHOLD FOR A DIAGNOSTIC METHOD  d ≥ 0.50";
+  svg.appendChild(bandLab);
+
+  data.forEach((m, i) => {
+    const y = padT + i * rowH + rowH / 2;
+    const cut = m.feasible === "no";
+
+    const idT = el("text", { x: 6, y: y + 4, class: "row-id" });
+    idT.textContent = m.id;
+    svg.appendChild(idT);
+
+    const name = el("text", { x: 44, y: y + 4, class: "row-label" + (cut ? " cut" : "") });
+    name.textContent = m.method.length > 46 ? m.method.slice(0, 45) + "…" : m.method;
+    svg.appendChild(name);
+    const t = el("title");
+    t.textContent = `${m.method} — ${m.notes}`;
+    name.appendChild(t);
+
+    svg.appendChild(el("line", {
+      x1: x(m.lo), x2: x(m.hi), y1: y, y2: y, class: "interval" + (cut ? " cut" : ""),
+    }));
+
+    if (showReal) {
+      svg.appendChild(el("line", {
+        x1: x(m.d), x2: x(m.realized), y1: y, y2: y, class: "connector",
+      }));
+      svg.appendChild(el("circle", { cx: x(m.realized), cy: y, r: 5, class: "dot-real" }));
+    }
+    svg.appendChild(el("circle", {
+      cx: x(m.d), cy: y, r: 4.5, class: "dot-prior" + (cut ? " cut" : ""),
+    }));
+  });
+}
+
+function drawScatter() {
+  const svg = document.getElementById("scatter");
+  svg.textContent = "";
+  const W = 1080, H = 420, padL = 62, padR = 24, padT = 26, padB = 54;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const costMax = 260, dMax = 1.05;
+  const x = c => padL + (c / costMax) * plotW;
+  const y = d => padT + plotH - (d / dMax) * plotH;
+
+  for (let c = 0; c <= 250; c += 50) {
+    svg.appendChild(el("line", { x1: x(c), x2: x(c), y1: padT, y2: padT + plotH, class: c === 0 ? "ax-line" : "ax-grid" }));
+    const l = el("text", { x: x(c), y: padT + plotH + 18, class: "ax-label", "text-anchor": "middle" });
+    l.textContent = "$" + c;
+    svg.appendChild(l);
+  }
+  for (let d = 0; d <= 1.0; d += 0.25) {
+    svg.appendChild(el("line", { x1: padL, x2: padL + plotW, y1: y(d), y2: y(d), class: d === 0 ? "ax-line" : "ax-grid" }));
+    const l = el("text", { x: padL - 10, y: y(d) + 3.5, class: "ax-label", "text-anchor": "end" });
+    l.textContent = d.toFixed(2);
+    svg.appendChild(l);
+  }
+  const xt = el("text", { x: padL + plotW / 2, y: H - 14, class: "ax-label", "text-anchor": "middle" });
+  xt.textContent = "PILOT COST (USD)";
+  svg.appendChild(xt);
+  const yt = el("text", { x: 16, y: padT + plotH / 2, class: "ax-label", "text-anchor": "middle",
+    transform: `rotate(-90 16 ${padT + plotH / 2})` });
+  yt.textContent = "DISCRIMINATION POWER";
+  svg.appendChild(yt);
+
+  METHODS.forEach(m => {
+    const cut = m.feasible === "no";
+    const cx = x(Math.min(m.cost, costMax)), cy = y(m.d);
+    svg.appendChild(el("circle", {
+      cx, cy, r: 6,
+      fill: cut ? "var(--muted)" : "var(--accent)",
+      "fill-opacity": cut ? ".5" : ".85",
+    }));
+    const lab = el("text", {
+      x: cx + 10, y: cy + 3.5,
+      class: "row-id",
+      fill: cut ? "var(--ink-faint)" : "var(--ink-soft)",
+    });
+    lab.textContent = m.id;
+    const t = el("title");
+    t.textContent = `${m.id} ${m.method}\nd = ${m.d}, cost = $${m.cost}, ${m.days} days`;
+    lab.appendChild(t);
+    svg.appendChild(lab);
+  });
+}
+
+function drawTable() {
+  const tb = document.getElementById("tbody");
+  tb.textContent = "";
+  orderedMethods().forEach(m => {
+    const tr = document.createElement("tr");
+    const go = m.feasible === "yes";
+    const chip = go ? '<span class="chip go">run</span>'
+      : m.feasible === "partial" ? '<span class="chip">partial</span>'
+      : '<span class="chip hold">defer</span>';
+    tr.innerHTML = `
+      <td class="num">${m.id}</td>
+      <td>${m.method}</td>
+      <td><span class="chip">${m.family}</span></td>
+      <td class="num">${m.d.toFixed(2)}</td>
+      <td class="num">${m.lo.toFixed(2)}–${m.hi.toFixed(2)}</td>
+      <td class="num">$${m.cost.toFixed(0)}</td>
+      <td class="num">${m.days.toFixed(1)}</td>
+      <td>${chip}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function render() { drawChart(); drawScatter(); drawTable(); }
+
+const bPrior = document.getElementById("btn-prior");
+const bReal = document.getElementById("btn-real");
+const bSort = document.getElementById("btn-sort");
+
+bPrior.addEventListener("click", () => {
+  showReal = false;
+  bPrior.setAttribute("aria-pressed", "true");
+  bReal.setAttribute("aria-pressed", "false");
+  render();
+});
+bReal.addEventListener("click", () => {
+  showReal = true;
+  bReal.setAttribute("aria-pressed", "true");
+  bPrior.setAttribute("aria-pressed", "false");
+  render();
+});
+bSort.addEventListener("click", () => {
+  sortMode = sortMode === "d" ? "cost" : "d";
+  bSort.setAttribute("aria-pressed", sortMode === "cost" ? "true" : "false");
+  bSort.textContent = sortMode === "cost" ? "Sort by discrimination" : "Sort by cost-efficiency";
+  render();
+});
+
+render();
+</script>

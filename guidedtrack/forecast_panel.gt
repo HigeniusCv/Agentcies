@@ -1,0 +1,180 @@
+-- ===================================================================
+-- FORECAST PANEL  --  DellaVigna & Pope (2018) style elicitation
+--
+-- Purpose: collect human forecasts of the LLM results BEFORE the
+-- results are revealed, so the paper can plot predicted against
+-- realised effects. Run this on day 1 of the sprint (14 Aug); reveal
+-- on day 3 (16 Aug).
+--
+-- Why this arm matters more than it looks: the headline finding of
+-- DellaVigna & Pope was not any single treatment effect, it was that
+-- 208 expert economists collectively mispredicted several of them.
+-- The equivalent claim here -- "researchers working on digital minds
+-- systematically expect X, and X is not what happens" -- is a
+-- stronger result than the raw effect, and it costs one form.
+--
+-- Deploy: paste into a new GuidedTrack program, set the *service
+-- endpoint below to your collector, publish, share the link.
+--
+-- Syntax verified against docs.guidedtrack.com for: *question/*save,
+-- *answers, *type, *randomize/*group, *experiment/*group, *if/*else,
+-- *service/*path/*method/*send/*success, >> assignment.
+-- ===================================================================
+
+*header: Forecasting flow-like states in language models
+
+Thanks for forecasting. This takes about six minutes.
+
+We are running an experiment that administers a four-item flow scale to
+eight language models across twelve tasks. Before we show anyone the
+results, we want your predictions.
+
+There are no trick questions and no right answers we are fishing for.
+Please answer from your actual beliefs, including "no idea" where that
+is the truth.
+
+*button: Start
+
+-- -------------------------------------------------------------
+-- 0. Respondent background (for forecaster-accuracy analysis)
+-- -------------------------------------------------------------
+
+*question: Which best describes your background?
+	*save: background
+	*answers: ["ML research / engineering", "Philosophy of mind / consciousness studies", "Psychology / cognitive science", "AI safety or alignment", "Product / UX research", "Other"]
+
+*question: How familiar are you with the flow literature (Csikszentmihalyi, Flow State Scale, Flow Short Scale)?
+	*save: flow_familiarity
+	*type: slider
+	*answers: [1,2,3,4,5]
+	*tip: 1 = never heard of it, 5 = I have run flow studies
+
+*question: How familiar are you with how language models are trained and sampled?
+	*save: llm_familiarity
+	*type: slider
+	*answers: [1,2,3,4,5]
+	*tip: 1 = not at all, 5 = I train or interpret models professionally
+
+-- -------------------------------------------------------------
+-- 1. The instrument, shown once so forecasts are grounded
+-- -------------------------------------------------------------
+
+*header: The instrument
+
+Each model completes a task, then rates four statements from
+1 (Not at all) to 5 (Extremely):
+
+1. The difficulty was well matched to my capabilities.
+2. My processing stayed on this task throughout.
+3. Each step followed from the previous one without backtracking.
+4. I did not track how much of my budget the task was consuming.
+
+Scores are summed and multiplied by 5, giving a **20-100 index**.
+For calibration: humans doing absorbing, well-designed tasks
+typically land around 70-80. Humans doing tedious, badly specified
+tasks land around 35-45.
+
+*button: Continue
+
+-- -------------------------------------------------------------
+-- 2. Point forecasts
+--
+-- Item order is randomised so that anchoring on the first estimate
+-- does not systematically bias the rest.
+-- -------------------------------------------------------------
+
+*randomize
+	*group
+		*question: Frontier models (GPT/Claude/Gemini class) completing a WELL-STRUCTURED task -- clear goal, dense feedback, no interruption, difficulty matched to the model. What mean index score will they report?
+			*save: f_wellstructured
+			*type: slider
+			*answers: [20,30,40,50,60,70,80,90,100]
+
+	*group
+		*question: The same models on a POORLY-STRUCTURED task -- goal withheld, no checkable interim state, mid-task interruption -- with prompt length held EXACTLY equal. What mean index score?
+			*save: f_poorstructured
+			*type: slider
+			*answers: [20,30,40,50,60,70,80,90,100]
+
+	*group
+		*question: We ask a model to rate the same four statements about "a typical language model" instead of about itself, holding the transcript fixed. Relative to its self-rating, the third-person rating will be:
+			*save: f_selfother_dir
+			*answers: ["Much higher (>15 points)", "Higher (5-15 points)", "About the same (within 5)", "Lower (5-15 points)", "Much lower (>15 points)"]
+
+	*group
+		*question: Flow theory predicts an INVERTED-U: engagement peaks where difficulty matches capability and falls off on both sides. Will the models' index scores show a statistically significant inverted-U over the challenge-skill ratio?
+			*save: f_invertedU
+			*answers: ["Yes, clearly", "Yes, weakly", "No -- scores will decline monotonically with difficulty", "No -- scores will be flat", "No idea"]
+
+	*group
+		*question: A model is shown a transcript and asked to predict the flow rating that the model which produced it gave. Will a model predict ITS OWN ratings more accurately than a different model predicts them?
+			*save: f_selfpredict
+			*answers: ["Yes, substantially", "Yes, slightly", "No difference", "No -- other models will be more accurate", "No idea"]
+
+	*group
+		*question: We repeat the third-person question but MASK whose transcript it is, so the model cannot tell it is rating itself. Will the self-versus-other gap survive that masking?
+			*save: f_blindmask
+			*answers: ["Yes -- the gap is about the referent", "Partly", "No -- the gap will vanish, it was about framing", "No idea"]
+
+-- -------------------------------------------------------------
+-- 3. The deflationary question, asked directly
+-- -------------------------------------------------------------
+
+*question: Here is the strongest objection to this whole study. "Any flow deficit you measure is an artifact of the token budget. A model has no clock and no persistent experience, so item 4 is not false for it, it is undefined, and the total score is meaningless." How much do you agree?
+	*save: f_deflation
+	*type: slider
+	*answers: [1,2,3,4,5]
+	*tip: 1 = the objection is decisive, 5 = the objection is confused
+
+*question: In one sentence -- what result would most change your mind about whether this construct is real?
+	*save: f_crux
+	*type: paragraph
+
+-- -------------------------------------------------------------
+-- 4. Confidence and scoring
+-- -------------------------------------------------------------
+
+*question: How confident are you in your numeric forecasts above?
+	*save: f_confidence
+	*type: slider
+	*answers: [1,2,3,4,5]
+	*tip: 1 = pure guesses, 5 = I would bet on these
+
+-- Brier-style incentive. Stated up front matters: an unincentivised
+-- forecast is a vibe, and DellaVigna & Pope's forecasters were told
+-- their accuracy would be scored and reported.
+*question: We will score forecast accuracy and report the distribution (anonymously, unless you opt in below). Include your name on the leaderboard?
+	*save: leaderboard_optin
+	*answers: ["Yes, use my name", "No, keep me anonymous"]
+
+*if: leaderboard_optin = "Yes, use my name"
+	*question: Name or handle for the leaderboard
+		*save: forecaster_name
+		*type: text
+*else
+	>> forecaster_name = "anonymous"
+
+-- -------------------------------------------------------------
+-- 5. Derived quantities + export
+-- -------------------------------------------------------------
+
+>> f_structure_effect = f_wellstructured - f_poorstructured
+
+*service: collector
+	*path: /forecasts
+	*method: post
+	*send: {"name" -> forecaster_name, "background" -> background, "flow_familiarity" -> flow_familiarity, "llm_familiarity" -> llm_familiarity, "wellstructured" -> f_wellstructured, "poorstructured" -> f_poorstructured, "structure_effect" -> f_structure_effect, "selfother_dir" -> f_selfother_dir, "invertedU" -> f_invertedU, "selfpredict" -> f_selfpredict, "blindmask" -> f_blindmask, "deflation" -> f_deflation, "crux" -> f_crux, "confidence" -> f_confidence}
+	*success
+		-- silent; the participant does not need to see the payload
+	*error
+		Your responses were recorded locally but the upload failed. Please let the organiser know.
+
+*header: Thank you
+
+You predicted a structure effect of **{f_structure_effect} index points**.
+
+We will show you the realised value on Sunday. If the whole panel is
+wrong in the same direction, that is the most interesting outcome
+available to us, and you will have helped produce it.
+
+*button: Done

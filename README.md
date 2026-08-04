@@ -1,2 +1,140 @@
-# Agentcies
-This is where Claude is allowed to play
+# Flow-like states in language models
+
+A research programme applying **revealed-preference** and **predicted-preference**
+measurement to LLM cognition, built for the [Digital Minds Research Sprint][sprint]
+(14–16 August 2026, CIMC House).
+
+The question: **does anything flow-like exist in a language model, and can it be
+measured behaviourally rather than only asked about?**
+
+The objection this repository is organised around, stated by the PI before any
+data existed:
+
+> Is the "lack of flow" just going to be a trivial consequence of the Token
+> Budget, or might instruments extract other components of the chains of
+> inference?
+
+Short answer: it is a *falsifiable* claim, not a vague worry, and the design that
+falsifies it is the design worth running. See
+[`docs/01-RESEARCH-PLAN.md`](docs/01-RESEARCH-PLAN.md) §4 and the reframe that
+turns the token budget from a confound into the study's main independent
+variable.
+
+---
+
+## The primary endpoint
+
+Not the flow score. Not even the inverted-U. **The peak shift.**
+
+The overthinking/underthinking literature ([arXiv 2505.00127][overthink]) already
+shows models over-allocate tokens on easy problems and under-allocate on hard
+ones — a difficulty-shaped curve falling straight out of decoding dynamics, with
+no experiential vocabulary anywhere in it. So a bare inverted-U proves nothing.
+
+What decoding dynamics do *not* predict is that the **location** of the peak
+tracks **effective skill** — including skill raised by a hint the model was never
+told would raise it. Flow theory predicts a slope of 1.0: one unit of extra skill
+moves the optimal challenge by one unit.
+
+That coupling is the endpoint. It is what demand characteristics cannot fake and
+what a token-budget account cannot generate.
+
+```
+python3 analysis/analyze.py --compare     # H0 is the first test reported
+```
+
+---
+
+## Layout
+
+| Path | What it is |
+|---|---|
+| [`docs/00-CITATIONS-VERIFIED.md`](docs/00-CITATIONS-VERIFIED.md) | Citation ledger. **Read first.** Two load-bearing references in the drafts were wrong; both are corrected here. |
+| `docs/01-RESEARCH-PLAN.md` | The plan: hypotheses, design, the token-budget section, ethics, kill criteria |
+| `docs/02-METHODS-MENU.md` | Exhaustive method menu, ~22 methods, each with a steelman critique |
+| `docs/03-INSTRUMENTS-AND-PROMPTS.md` | Copy-pasteable items, prompts, task battery |
+| `docs/04-ANALYSIS-AND-POWER.md` | Pre-registered analysis, MDES tables, the method-priors table |
+| `docs/05-SYNTHETIC-STUDY.md` | A complete synthetic paper: predictions → methods → simulated results → discussion |
+| `harness/flowprobe/` | The measurement library (providers, instruments, tasks, protocols) |
+| `harness/run_pilot.py` | Pilot runner with cost planning and resume |
+| `analysis/` | Generative model, analysis pipeline, power, the forecast figure |
+| `guidedtrack/` | Human baseline arm + DellaVigna-style forecast panel, and a collector |
+| `data/` | Synthetic datasets and the method-priors table |
+
+---
+
+## Quickstart
+
+```bash
+pip install numpy scipy pandas statsmodels
+
+# 1. Confirm the matched-length design is intact (this is a real check --
+#    it caught 10/12 broken pairs on the first pass)
+python3 -m flowprobe.tasks            # run from harness/
+
+# 2. Generate synthetic data under both rival hypotheses
+python3 analysis/simulate.py --hypothesis structure  --out data
+python3 analysis/simulate.py --hypothesis deflation  --out data
+
+# 3. Confirm the analysis actually tells them apart
+python3 analysis/analyze.py --compare
+#    -> 7/7 tests discriminate the two worlds
+
+# 4. Power: where extra API calls stop buying precision
+python3 analysis/power.py --out data/mdes_grid.csv
+
+# 5. Cost a real run without spending anything
+python3 harness/run_pilot.py --models openai:MODEL anthropic:MODEL --dry-run
+```
+
+No API keys are needed for steps 1–5.
+
+---
+
+## The design in one paragraph
+
+Eight models × twelve tasks. Each task exists as a **matched pair** — identical
+token count, different structure (goal clarity, feedback density, interruption,
+ambiguity). Difficulty is manipulated separately and orthogonally, and a hint
+condition raises effective skill without announcing that it does. After each
+task the model rates four items adapted from **FlowMoBI-4**, read as a
+*distribution over the tokens "1".."5"* rather than a sampled digit wherever the
+provider exposes logprobs. Three control arms run alongside: a **blind-self**
+referent (is the self–other gap about identity or just register?), **Binder-style
+cross-prediction** (does a model predict its own report better than a
+well-informed outsider does?), and a **progressive-ratio breakpoint** that never
+asks the model anything at all.
+
+---
+
+## Three things this repository refuses to fudge
+
+**Length matching is verified, not asserted.** `verify_matching()` failed 10 of
+12 pairs on the first pass. They were rewritten until all 24 variants are
+*exactly* equal in tokens. If a pair drifts, `run_pilot.py` aborts before
+spending money — the matched-length inference is the whole rebuttal to the
+deflationary account, and a 2-token drift voids it.
+
+**Pseudo-replication is named and corrected.** Challenge–skill ratio varies
+almost entirely *between* tasks (ICC ≈ 0.87), so the quadratic term competes with
+the task random effect. The effective N for that test is 96 cells, **not** 4,608
+API calls. `h1_inverted_u()` reports both denominators and the verdict keys off
+the honest one. "We ran 100,000 completions" is not a power argument.
+
+**Logprob readout is not oversold.** The tempting claim is that logprob readout
+has ~8× lower variance and is therefore worth 8 sampled calls. It isn't. Readout
+noise is one component of within-cell variance and residual variance does not
+shrink; the realised multiplier here is ≈1.3. `readout_precision()` reports the
+realised number and says why it differs.
+
+---
+
+## Status
+
+Design and instrumentation complete; **no empirical data collected.** Everything
+in `data/` is simulated from `analysis/simulate.py` and labelled SYNTHETIC. The
+synthetic study exists so the analysis and the figures are fixed before any
+result is seen — not to stand in for findings.
+
+[sprint]: https://apartresearch.com/sprints/digital-minds-research-sprint-2026-08-14-to-2026-08-16
+[overthink]: https://arxiv.org/abs/2505.00127

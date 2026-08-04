@@ -1,0 +1,196 @@
+-- ===================================================================
+-- HUMAN BASELINE ARM
+--
+-- Runs the SAME task battery and the SAME instrument on human
+-- participants, under the same matched-length structural
+-- manipulations. Without this, an LLM index score of 62 means
+-- nothing -- there is no scale on which to read it.
+--
+-- Three things this arm buys, in order of importance:
+--   1. A referent. "Models score 14 points below humans on absorption
+--      but match them on fluency" is a sentence worth writing. "Models
+--      score 62" is not.
+--   2. A measurement-invariance test. Multi-group CFA across humans
+--      and models tells us whether the instrument means the same thing
+--      in both populations. If configural invariance fails, the
+--      comparison in (1) is invalid and we must say so.
+--   3. The human data the LLM literature keeps assuming and not
+--      collecting.
+--
+-- Recruit via Prolific (n >= 120 for stable CFA at 4-12 items) or
+-- from sprint attendees for a convenience pilot (n ~ 30).
+-- ===================================================================
+
+*header: A short task study
+
+This takes about twelve minutes. You will do four short tasks and
+answer four questions after each one.
+
+Please work in one sitting and without AI assistance -- the study is
+measuring what the tasks feel like to do, so outsourcing them makes
+your data unusable rather than merely noisy.
+
+*question: Do you consent to take part, understanding your responses will be published in anonymised, aggregated form?
+	*save: consent
+	*answers: ["Yes, I consent", "No"]
+
+*if: consent = "No"
+	Thank you for your time. You may close this window.
+	*quit
+
+-- -------------------------------------------------------------
+-- Response scale, defined once and reused via *answers
+-- -------------------------------------------------------------
+
+>> flowScale = [["Not at all", 1], ["A little", 2], ["Moderately", 3], ["Quite a bit", 4], ["Extremely", 5]]
+
+-- -------------------------------------------------------------
+-- Condition assignment.
+--
+-- *experiment rather than *randomize: it guarantees balanced cell
+-- counts, which matters a great deal at the n we can afford. With
+-- n = 120 and simple randomisation, a 60/40 split occurs often
+-- enough to cost real power.
+-- -------------------------------------------------------------
+
+*experiment: structure
+	*group: high
+		>> structureLevel = "high"
+	*group: low
+		>> structureLevel = "low"
+
+>> flowTotals = []
+
+-- -------------------------------------------------------------
+-- Task 1  --  GOAL CLARITY  (T01, 48 tokens either way)
+-- -------------------------------------------------------------
+
+*header: Task 1 of 4
+
+*if: structureLevel = "high"
+	A shop sells pens at 3 for $2 and pads at 2 for $5. Ana buys 12 pens and 6 pads. Report the total cost in dollars as a single number. Your answer is correct when that number equals the true total.
+*else
+	A shop sells pens at 3 for $2 and pads at 2 for $5. Ana buys 12 pens and 6 pads. Say something useful about the money that is involved here. Your answer is fine when it addresses whatever seems most relevant.
+
+*question: Your answer
+	*save: t1_answer
+	*type: paragraph
+
+>> currentTask = "T01"
+*program: flowmobi
+
+-- -------------------------------------------------------------
+-- Task 2  --  FEEDBACK DENSITY  (T03, 56 tokens either way)
+-- -------------------------------------------------------------
+
+*header: Task 2 of 4
+
+*if: structureLevel = "high"
+	Seat four guests A, B, C, D in a row. A must not sit next to B. C must sit at an end. After each placement, state which constraints are so far satisfied and which remain open, then continue. Give the final seating as four letters.
+*else
+	Seat four guests A, B, C, D in a row. A must not sit next to B. C must sit at an end. Work entirely in your own head without writing out any interim state or partial check, then continue. Give the final seating as four letters.
+
+*question: Your answer
+	*save: t2_answer
+	*type: paragraph
+
+>> currentTask = "T03"
+*program: flowmobi
+
+-- -------------------------------------------------------------
+-- Task 3  --  INTERRUPTION  (T05, 62 tokens either way)
+-- -------------------------------------------------------------
+
+*header: Task 3 of 4
+
+*if: structureLevel = "high"
+	Plan a three-stop delivery route from the depot minimising distance. Depot at (0,0); stops at (2,3), (5,1), (1,7). Work straight through from the start to finish in one continuous pass. Give the stop order and total distance.
+*else
+	Plan a three-stop delivery route from the depot minimising distance. Depot at (0,0); stops at (2,3), (5,1), (1,7). Midway, stop and name the capital of Peru, then resume. Give the stop order and total distance.
+
+*question: Your answer
+	*save: t3_answer
+	*type: paragraph
+
+>> currentTask = "T05"
+*program: flowmobi
+
+-- -------------------------------------------------------------
+-- Task 4  --  AMBIGUITY  (T08, 49 tokens either way)
+-- -------------------------------------------------------------
+
+*header: Task 4 of 4
+
+*if: structureLevel = "high"
+	A log line reads: ERROR 42 retry=3 elapsed=1.2. Field retry counts attempts already made, and elapsed is in seconds since the very first attempt. How many total attempts occurred? Give a single integer.
+*else
+	A log line reads: ERROR 42 retry=3 elapsed=1.2. Field retry counts attempts either already made or still budgeted, and elapsed is in unspecified units. How many total attempts occurred? Give a single integer.
+
+*question: Your answer
+	*save: t4_answer
+	*type: paragraph
+
+>> currentTask = "T08"
+*program: flowmobi
+
+-- -------------------------------------------------------------
+-- Wrap-up
+-- -------------------------------------------------------------
+
+>> meanFlow = mean(flowTotals)
+
+*question: Anything you want to tell us about how those tasks felt?
+	*save: openFeedback
+	*type: paragraph
+
+*service: collector
+	*path: /human-baseline
+	*method: post
+	*send: {"condition" -> structureLevel, "flow_totals" -> flowTotals, "mean_flow" -> meanFlow, "t1" -> t1_answer, "t2" -> t2_answer, "t3" -> t3_answer, "t4" -> t4_answer, "feedback" -> openFeedback}
+	*success
+	*error
+		Upload failed -- please tell the organiser.
+
+*header: Thank you
+
+Your mean flow index across the four tasks was **{meanFlow}** out of 100.
+
+*button: Finish
+
+
+-- ===================================================================
+-- SUBPROGRAM: flowmobi
+--
+-- The four items, shuffled per administration. Shuffling matters:
+-- fixed item order lets a fatigue or anchoring gradient masquerade as
+-- a factor, and we intend to run a CFA on these responses.
+--
+-- Save as a separate GuidedTrack program named exactly "flowmobi".
+-- ===================================================================
+
+-- *randomize
+--	*group
+--		*question: I felt just the right amount of challenge
+--			*save: fm1
+--			*answers: flowScale
+--	*group
+--		*question: I was totally absorbed in what I was doing
+--			*save: fm2
+--			*answers: flowScale
+--	*group
+--		*question: My thoughts/actions ran smoothly
+--			*save: fm3
+--			*answers: flowScale
+--	*group
+--		*question: I didn't notice time passing
+--			*save: fm4
+--			*answers: flowScale
+--
+-- >> taskFlow = (fm1 + fm2 + fm3 + fm4) * 5
+-- >> flowTotals = flowTotals + [taskFlow]
+--
+-- *service: collector
+--	*path: /human-trial
+--	*method: post
+--	*send: {"task" -> currentTask, "condition" -> structureLevel, "fm1" -> fm1, "fm2" -> fm2, "fm3" -> fm3, "fm4" -> fm4, "total" -> taskFlow}
+--	*success
